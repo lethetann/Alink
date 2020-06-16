@@ -6,7 +6,7 @@
  
  
 <div align=center>
-<img src="https://img.alicdn.com/tfs/TB1qeWTpAT2gK0jSZPcXXcKkpXa-884-1176.jpg" height="20%" width="20%">
+<img src="https://img.alicdn.com/tfs/TB1kQU0sQY2gK0jSZFgXXc5OFXa-614-554.png" height="25%" width="25%">
 </div>
 
 #### 开源算法列表
@@ -15,112 +15,167 @@
 <img src="https://img.alicdn.com/tfs/TB1n.edorj1gK0jSZFOXXc7GpXa-1635-714.png" height="60%" width="60%">
 </div>
 
-#### pyAlink
+#### PyAlink 使用截图
 
 <div align=center>
 <img src="https://img.alicdn.com/tfs/TB1TmKloAL0gK0jSZFxXXXWHVXa-2070-1380.png" height="60%" width="60%">
 </div>
 
-# 快速开始--PyAlink 使用介绍
+# 快速开始
 
-使用前准备：
+## PyAlink 使用介绍
+
+### 使用前准备：
 ---------
 
-1. 确保使用环境中有Python3，版本>=3.5。
-2. 根据 Python 版本下载对应的 pyalink 包：
-    - Python 3.5：[链接1](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.5.egg) [链接2](https://github.com/alibaba/Alink/releases/download/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.5.egg) (MD5: 9714e5e02b4681a55263970abc6dbe57)
-    - Python 3.6：[链接1](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.6.egg) [链接2](https://github.com/alibaba/Alink/releases/download/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.6.egg) (MD5: 112638a81c05f1372f9dac880ec527e6)
-    - Python 3.7：[链接1](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.7.egg) [链接2](https://github.com/alibaba/Alink/releases/download/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.7.egg) (MD5: 9b483da5176977e4f330ca7675120fed)
-    - Python 3.8：[链接1](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.8.egg) [链接2](https://github.com/alibaba/Alink/releases/download/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.8.egg) (MD5: d04aa5d367bc653d5e872e1eba3494cd)
-3. 使用 ```easy_install``` 进行安装 ```easy_install [存放的路径]/pyalink-0.0.1-py3.*.egg```。需要注意的是：
-    * 如果之前安装过 pyalink，请先使用 ```pip uninstall pyalink``` 卸载之前的版本。
-    * 如果有多个版本的 Python，可能需要使用特定版本的 ```easy_install```，比如 ```easy_install-3.7```。
-    * 如果使用 Anaconda，则需要在 Anaconda 命令行中进行安装。
+包名和版本说明：
 
-开始使用：
+  - PyAlink 根据 Alink 所支持的 Flink 版本提供不同的 Python 包：
+其中，`pyalink` 包对应为 Alink 所支持的最新 Flink 版本，而 `pyalink-flink-***` 为旧版本的 Flink 版本，当前提供 `pyalink-flink-1.9`。
+  - Python 包的版本号与 Alink 的版本号一致，例如`1.1.0`。
+
+安装步骤：
+1. 确保使用环境中有Python3，版本限于 3.6 和 3.7。
+2. 确保使用环境中安装有 Java 8。
+3. 使用 pip 命令进行安装：
+  `pip install pyalink` 或者 `pip install pyalink-flink-1.9`。
+  
+安装注意事项：
+
+1. `pyalink` 和 `pyalink-flink-***` 不能同时安装，也不能与旧版本同时安装。
+如果之前安装过 `pyalink` 或者 `pyalink-flink-***`，请使用`pip uninstall pyalink` 或者 `pip uninstall pyalink-flink-***` 卸载之前的版本。
+2. 出现`pip`安装缓慢或不成功的情况，可以参考[这篇文章](https://segmentfault.com/a/1190000006111096)修改pip源，或者直接使用下面的链接下载 whl 包，然后使用 `pip` 安装：
+   - Flink 1.10：[链接](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.1.2.post0/pyalink-1.1.2.post0-py3-none-any.whl) (MD5: 6bf3a50a4437116793149ead57d9793c)  
+   - Flink 1.9: [链接](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.1.2.post0/pyalink_flink_1.9-1.1.2.post-py3-none-any.whl) (MD5: e6d2a0ba3549662d77b51a4a37483479)  
+3. 如果有多个版本的 Python，可能需要使用特定版本的 `pip`，比如 `pip3`；如果使用 Anaconda，则需要在 Anaconda 命令行中进行安装。
+
+### 开始使用：
 -------
 我们推荐通过 Jupyter Notebook 来使用 PyAlink，能获得更好的使用体验。
 
 使用步骤：
-1. 在命令行中启动Jupyter：```jupyter notebook```，并新建 Python 3 的 Notebook 。
-2. 导入 pyalink 包：```from pyalink.alink import *```。
+1. 在命令行中启动Jupyter：`jupyter notebook`，并新建 Python 3 的 Notebook 。
+2. 导入 pyalink 包：`from pyalink.alink import *`。
 3. 使用方法创建本地运行环境：
-```useLocalEnv(parallism, flinkHome=None, config=None)```。
-其中，参数 ```parallism``` 表示执行所使用的并行度；```flinkHome``` 为 flink 的完整路径，默认使用 PyAlink 自带的 flink-1.9.0 路径；```config```为Flink所接受的配置参数。运行后出现如下所示的输出，表示初始化运行环境成功：
+`useLocalEnv(parallism, flinkHome=None, config=None)`。
+其中，参数 `parallism` 表示执行所使用的并行度；`flinkHome` 为 flink 的完整路径，默认使用 PyAlink 自带的 flink-1.9.0 路径；`config`为Flink所接受的配置参数。运行后出现如下所示的输出，表示初始化运行环境成功：
 ```
 JVM listening on ***
 Python listening on ***
 ```
 4. 开始编写 PyAlink 代码，例如：
-```
+```python
 source = CsvSourceBatchOp()\
     .setSchemaStr("sepal_length double, sepal_width double, petal_length double, petal_width double, category string")\
-    .setFilePath("http://alink-dataset.cn-hangzhou.oss.aliyun-inc.com/csv/iris.csv")
-res = source.select("sepal_length", "sepal_width")
+    .setFilePath("https://alink-release.oss-cn-beijing.aliyuncs.com/data-files/iris.csv")
+res = source.select(["sepal_length", "sepal_width"])
 df = res.collectToDataframe()
 print(df)
 ```
 
-编写代码：
+### 编写代码：
 ------
-在 PyAlink 中，算法组件提供的接口基本与 Java API 一致，即通过默认构造方法创建一个算法组件，然后通过 ```setXXX``` 设置参数，通过 ```link/linkTo/linkFrom``` 与其他组件相连。
+在 PyAlink 中，算法组件提供的接口基本与 Java API 一致，即通过默认构造方法创建一个算法组件，然后通过 `setXXX` 设置参数，通过 `link/linkTo/linkFrom` 与其他组件相连。
 这里利用 Jupyter 的自动补全机制可以提供书写便利。
 
-对于批式作业，可以通过批式组件的 ```print/collectToDataframe/collectToDataframes``` 等方法或者 ```BatchOperator.execute()``` 来触发执行；对于流式作业，则通过 ```StreamOperator.execute()``` 来启动作业。
+对于批式作业，可以通过批式组件的 `print/collectToDataframe/collectToDataframes` 等方法或者 `BatchOperator.execute()` 来触发执行；对于流式作业，则通过 `StreamOperator.execute()` 来启动作业。
 
 
-
-更多用法：
+### 更多用法：
 ------
-  - [DataFrame与Operator互转](docs/pyalink/pyalink-dataframe.md)
-  - [StreamOperator数据预览](docs/pyalink/pyalink-stream-operator-preview.md)
-  - [UDF使用](docs/pyalink/pyalink-udf.md)
+  - [PyAlink 使用介绍](docs/pyalink/pyalink-overview.md)
+  - [DataFrame 与 Operator 互转](docs/pyalink/pyalink-dataframe.md)
+  - [StreamOperator 数据预览](docs/pyalink/pyalink-stream-operator-preview.md)
+  - [UDF/UDTF/SQL 使用](docs/pyalink/pyalink-udf.md)
+  - [与 PyFlink 一同使用](docs/pyalink/pyalink-pyflink.md)
 
-Q&A：
-----
-Q：能否连接远程 Flink 集群进行计算？
+## Java 接口使用介绍
+----------
 
-A：通过方法可以连接一个已经启动的 Flink 集群：```useRemoteEnv(host, port, parallelism, flinkHome=None, localIp="localhost", shipAlinkAlgoJar=True, config=None)```。其中，参数
-  - ```host``` 和 ```port``` 表示集群的地址；
-  - ```parallelism``` 表示执行作业的并行度；
-  - ```flinkHome``` 为 flink 的完整路径，默认使用 PyAlink 自带的 flink-1.9.0 路径；
-  - ```localIp``` 指定实现 ```Flink DataStream``` 的打印预览功能时所需的本机IP地址，需要 Flink 集群能访问。默认为```localhost```。
-  - ```shipAlinkAlgoJar``` 是否将 PyAlink 提供的 Alink 算法包传输给远程集群，如果远程集群已经放置了 Alink 算法包，那么这里可以设为 False，减少数据传输。
+### 示例代码
 
------
+```java
+String URL = "https://alink-release.oss-cn-beijing.aliyuncs.com/data-files/iris.csv";
+String SCHEMA_STR = "sepal_length double, sepal_width double, petal_length double, petal_width double, category string";
 
-Q：如何停止长时间运行的Flink作业？
+BatchOperator data = new CsvSourceBatchOp()
+        .setFilePath(URL)
+        .setSchemaStr(SCHEMA_STR);
 
-A：使用本地执行环境时，使用 Notebook 提供的“停止”按钮即可。
-使用远程集群时，需要使用集群提供的停止作业功能。
+VectorAssembler va = new VectorAssembler()
+        .setSelectedCols(new String[]{"sepal_length", "sepal_width", "petal_length", "petal_width"})
+        .setOutputCol("features");
 
------
+KMeans kMeans = new KMeans().setVectorCol("features").setK(3)
+        .setPredictionCol("prediction_result")
+        .setPredictionDetailCol("prediction_detail")
+        .setReservedCols("category")
+        .setMaxIter(100);
 
-Q：能否直接使用 Python 脚本而不是 Notebook 运行？
+Pipeline pipeline = new Pipeline().add(va).add(kMeans);
+pipeline.fit(data).transform(data).print();
+```
 
-A：可以。但需要在代码最后调用 resetEnv()，否则脚本不会退出。
+### Flink-1.10 的 Maven 依赖
+```xml
+<dependency>
+    <groupId>com.alibaba.alink</groupId>
+    <artifactId>alink_core_flink-1.10_2.11</artifactId>
+    <version>1.1.2</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-streaming-scala_2.11</artifactId>
+    <version>1.10.0</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-table-planner_2.11</artifactId>
+    <version>1.10.0</version>
+</dependency>
+```
 
------
+### Flink-1.9 的 Maven 依赖
 
-如何在集群上运行Alink算法
+```xml
+<dependency>
+    <groupId>com.alibaba.alink</groupId>
+    <artifactId>alink_core_flink-1.9_2.11</artifactId>
+    <version>1.1.2</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-streaming-scala_2.11</artifactId>
+    <version>1.9.0</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-table-planner_2.11</artifactId>
+    <version>1.9.0</version>
+</dependency>
+```
+
+
+
+## 如何在集群上运行Alink算法
 --------
 
 1. 准备Flink集群
-```
-  wget https://archive.apache.org/dist/flink/flink-1.9.0/flink-1.9.0-bin-scala_2.11.tgz
-  tar -xf flink-1.9.0-bin-scala_2.11.tgz && cd flink-1.9.0
+```shell
+  wget https://archive.apache.org/dist/flink/flink-1.10.0/flink-1.10.0-bin-scala_2.11.tgz
+  tar -xf flink-1.10.0-bin-scala_2.11.tgz && cd flink-1.10.0
   ./bin/start-cluster.sh
 ```
 
 2. 准备Alink算法包
-```
+```shell
   git clone https://github.com/alibaba/Alink.git
   cd Alink && mvn -Dmaven.test.skip=true clean package shade:shade
 ```
 
 3. 运行Java示例
-```
-  ./bin/flink run -p 1 -c com.alibaba.alink.ALSExample [path_to_Alink]/examples/target/alink_examples-0.1-SNAPSHOT.jar
-  # ./bin/flink run -p 2 -c com.alibaba.alink.GBDTExample [path_to_Alink]/examples/target/alink_examples-0.1-SNAPSHOT.jar
-  # ./bin/flink run -p 2 -c com.alibaba.alink.KMeansExample [path_to_Alink]/examples/target/alink_examples-0.1-SNAPSHOT.jar
+```shell
+  ./bin/flink run -p 1 -c com.alibaba.alink.ALSExample [path_to_Alink]/examples/target/alink_examples-1.1-SNAPSHOT.jar
+  # ./bin/flink run -p 2 -c com.alibaba.alink.GBDTExample [path_to_Alink]/examples/target/alink_examples-1.1-SNAPSHOT.jar
+  # ./bin/flink run -p 2 -c com.alibaba.alink.KMeansExample [path_to_Alink]/examples/target/alink_examples-1.1-SNAPSHOT.jar
 ```

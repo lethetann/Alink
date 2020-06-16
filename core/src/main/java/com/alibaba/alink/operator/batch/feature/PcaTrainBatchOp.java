@@ -1,7 +1,6 @@
 package com.alibaba.alink.operator.batch.feature;
 
 import com.alibaba.alink.common.linalg.*;
-import com.alibaba.alink.operator.common.feature.pca.PcaTypeEnum;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapPartitionFunction;
 import org.apache.flink.api.java.DataSet;
@@ -71,7 +70,7 @@ public final class PcaTrainBatchOp extends BatchOperator<PcaTrainBatchOp>
         //get parameters
         String[] selectedColNames = getSelectedCols();
         String vectorColName = getVectorCol();
-        String calcType = getCalculationType();
+        CalculationType calcType = getCalculationType();
         int k = getK();
 
         //convert table, dense tensor or sparse tensor to dense vector
@@ -81,7 +80,7 @@ public final class PcaTrainBatchOp extends BatchOperator<PcaTrainBatchOp>
         VectorSplit vectorSplit = new VectorSplit();
 
         //combine vector
-        VecCombine vecCombine = new VecCombine(calcType, k, selectedColNames, vectorColName);
+        VecCombine vecCombine = new VecCombine(calcType.name(), k, selectedColNames, vectorColName);
 
         DataSet<Row> srt = data
             .mapPartition(new StatisticsHelper.VectorSummarizerPartition(true))
@@ -102,6 +101,11 @@ public final class PcaTrainBatchOp extends BatchOperator<PcaTrainBatchOp>
         public void flatMap(BaseVectorSummarizer srt, Collector<Tuple2<Integer, DenseVector>> collector)
             throws Exception {
             BaseVectorSummary summary = srt.toSummary();
+
+            if (summary.count() == 0) {
+                return;
+            }
+
             int colNum = summary.vectorSize();
 
             //rowNum
@@ -323,7 +327,7 @@ public final class PcaTrainBatchOp extends BatchOperator<PcaTrainBatchOp>
             PcaModelData pcr = new PcaModelData();
 
             //get correlation or covariance matrix
-            PcaTypeEnum pcaTypeEnum = PcaTypeEnum.valueOf(pcaType.toUpperCase());
+            CalculationType pcaTypeEnum = CalculationType.valueOf(pcaType.toUpperCase());
 
             double[][] corr = null;
 
@@ -341,7 +345,7 @@ public final class PcaTrainBatchOp extends BatchOperator<PcaTrainBatchOp>
 
 
             DenseMatrix calculateMatrix = new DenseMatrix(corr);
-            if (pcaTypeEnum.equals(PcaTypeEnum.COVAR_POP)) {
+            if (pcaTypeEnum.equals(CalculationType.COVAR_POP)) {
                 double cnt = counts[0];
                 if (cnt > 1) {
                     calculateMatrix.scaleEqual(cnt / (cnt - 1));
@@ -388,10 +392,11 @@ public final class PcaTrainBatchOp extends BatchOperator<PcaTrainBatchOp>
 
         /**
          * build pca model.
-         * @param modelData: modelData
+         *
+         * @param modelData:          modelData
          * @param nonEqualColIndices: col indices of variance not zero.
-         * @param nxAll: number of col.
-         * @param model: model.
+         * @param nxAll:              number of col.
+         * @param model:              model.
          * @return model
          */
         protected void buildModel(PcaModelData modelData, List<Integer> nonEqualColIndices, int nxAll, Collector<Row> model) {
@@ -408,6 +413,7 @@ public final class PcaTrainBatchOp extends BatchOperator<PcaTrainBatchOp>
 
     /**
      * dense vector or sparse vector to dense vector.
+     *
      * @param vector: dense vector or sparse vector.
      * @return dense vector.
      */

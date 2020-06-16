@@ -1,14 +1,15 @@
 ## Description
-Data source for kafka.
+Data source for kafka 0.11
 
 ## Parameters
 | Name | Description | Type | Required？ | Default Value |
 | --- | --- | --- | --- | --- |
-| bootstrapServers | kafka集群地址 | String | ✓ |  |
-| groupId | 消费组id | String | ✓ |  |
+| bootstrapServers | kafka bootstrap servers | String | ✓ |  |
+| groupId | consumer group id | String | ✓ |  |
 | startupMode | startupMode | String | ✓ |  |
 | topic | topic | String |  | null |
 | topicPattern | topic pattern | String |  | null |
+| properties | additional kafka configurations | additional kafka configurations, such as "prop1=val1,prop2=val2" | String |  |  |
 | startTime | start time | String |  | null |
 
 

@@ -93,17 +93,14 @@ public class GlmModelMapper extends ModelMapper {
 
         featureColIdxs = new int[modelData.featureColNames.length];
         for (int i = 0; i < featureColIdxs.length; i++) {
-            featureColIdxs[i] = TableUtil.findColIndex(dataSchema.getFieldNames(), modelData.featureColNames[i]);
-            if (featureColIdxs[i] < 0) {
-                throw new RuntimeException("offset col not exist." + modelData.featureColNames[i]);
-            }
+            featureColIdxs[i] = TableUtil.findColIndexWithAssert(dataSchema.getFieldNames(), modelData.featureColNames[i]);
         }
 
         features = new double[featureColIdxs.length];
 
-        String familyName = params.get(GlmTrainParams.FAMILY);
+        GlmTrainParams.Family familyName = params.get(GlmTrainParams.FAMILY);
         double variancePower = params.get(GlmTrainParams.VARIANCE_POWER);
-        String linkName = params.get(GlmTrainParams.LINK);
+        GlmTrainParams.Link linkName = params.get(GlmTrainParams.LINK);
         double linkPower = params.get(GlmTrainParams.LINK_POWER);
 
         familyLink = new FamilyLink(familyName, variancePower, linkName, linkPower);

@@ -39,6 +39,7 @@ import com.alibaba.alink.operator.common.clustering.lda.OnlineLogLikelihood;
 import com.alibaba.alink.operator.common.clustering.lda.UpdateLambdaAndAlpha;
 import com.alibaba.alink.operator.common.nlp.DocCountVectorizerModelData;
 import com.alibaba.alink.operator.common.nlp.DocCountVectorizerModelMapper;
+import com.alibaba.alink.operator.common.nlp.FeatureType;
 import com.alibaba.alink.operator.common.statistics.StatisticsHelper;
 import com.alibaba.alink.operator.common.statistics.basicstatistic.BaseVectorSummary;
 import com.alibaba.alink.params.clustering.LdaTrainParams;
@@ -78,11 +79,11 @@ public class LdaTrainBatchOp extends BatchOperator<LdaTrainBatchOp>
         int numTopic = getTopicNum();
         int numIter = getNumIter();
         String vectorColName = getSelectedCol();
-        String optimizer = getMethod();
+        Method optimizer = getMethod();
         getParams().set(SELECTED_COL, vectorColName);
         final DataSet<DocCountVectorizerModelData> resDocCountModel = DocCountVectorizerTrainBatchOp
                 .generateDocCountModel(getParams(), in);
-        int index = TableUtil.findColIndex(in.getColNames(), vectorColName);
+        int index = TableUtil.findColIndexWithAssertAndHint(in.getColNames(), vectorColName);
         DataSet<Row> resRow = in.getDataSet()
                 .flatMap(new Document2Vector(index)).withBroadcastSet(resDocCountModel, "DocCountModel");
         TypeInformation<?>[] types = in.getColTypes();
@@ -94,12 +95,11 @@ public class LdaTrainBatchOp extends BatchOperator<LdaTrainBatchOp>
                 = StatisticsHelper.summaryHelper(trainData, null, vectorColName);
         double beta = getParams().get(BETA);
         double alpha = getParams().get(ALPHA);
-        LdaUtil.OptimizerMethod optimizerMethod = LdaUtil.OptimizerMethod.valueOf(optimizer.toUpperCase());
-        switch (optimizerMethod) {
+        switch (optimizer) {
             case EM:
                 gibbsSample(dataAndStat, numTopic, numIter, alpha, beta, resDocCountModel);
                 break;
-            case ONLINE:
+            case Online:
                 online(dataAndStat, numTopic, numIter, alpha, beta, resDocCountModel);
                 break;
             default:
@@ -297,7 +297,7 @@ public class LdaTrainBatchOp extends BatchOperator<LdaTrainBatchOp>
         private HashMap<String, Tuple2<Integer, Double>> wordIdWeight;
         private int featureNum;
         private int index;
-        private DocCountVectorizerModelMapper.FeatureType featureType;
+        private FeatureType featureType;
 
         Document2Vector(int index) {
             this.index = index;
@@ -309,7 +309,7 @@ public class LdaTrainBatchOp extends BatchOperator<LdaTrainBatchOp>
                     this.getRuntimeContext().getBroadcastVariable("DocCountModel").get(0);
             featureNum = data.list.size();
             minTF = data.minTF;
-            this.featureType = DocCountVectorizerModelMapper.FeatureType.valueOf(data.featureType.toUpperCase());
+            this.featureType = FeatureType.valueOf(data.featureType.toUpperCase());
             this.wordIdWeight = LdaUtil.setWordIdWeightPredict(data.list);
         }
 

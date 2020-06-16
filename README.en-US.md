@@ -7,7 +7,7 @@ Welcome everyone to join the Alink open source user group to communicate.
  
  
 <div align=center>
-<img src="https://img.alicdn.com/tfs/TB1qeWTpAT2gK0jSZPcXXcKkpXa-884-1176.jpg" height="20%" width="20%">
+<img src="https://img.alicdn.com/tfs/TB1kQU0sQY2gK0jSZFgXXc5OFXa-614-554.png" height="25%" width="25%">
 </div>
 
 #### List of Algorithms
@@ -16,29 +16,46 @@ Welcome everyone to join the Alink open source user group to communicate.
 <img src="https://img.alicdn.com/tfs/TB1AEOeoBr0gK0jSZFnXXbRRXXa-1320-1048.png" height="60%" width="60%">
 </div>
 
-#### pyAlink
+#### PyAlink
 
 <div align=center>
 <img src="https://img.alicdn.com/tfs/TB1TmKloAL0gK0jSZFxXXXWHVXa-2070-1380.png" height="60%" width="60%">
 </div>
 
-# Quick start--PyAlink Manual
+# Quick start
 
-Preparation before use:
+## PyAlink Manual
+
+### Preparation before use:
 ---------
 
-1. Make sure the version of python3 on your computer >=3.5
-2. Download the corresponding pyalink package according to the Python version:
-    - Python 3.5：[Link 1](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.5.egg) [Link 2](https://github.com/alibaba/Alink/releases/download/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.5.egg) (MD5: 9714e5e02b4681a55263970abc6dbe57)
-    - Python 3.6：[Link 1](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.6.egg) [Link 2](https://github.com/alibaba/Alink/releases/download/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.6.egg) (MD5: 112638a81c05f1372f9dac880ec527e6)
-    - Python 3.7：[Link 1](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.7.egg) [Link 2](https://github.com/alibaba/Alink/releases/download/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.7.egg) (MD5: 9b483da5176977e4f330ca7675120fed)
-    - Python 3.8：[Link 1](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.8.egg) [Link 2](https://github.com/alibaba/Alink/releases/download/v1.0.1/pyalink-1.0.1_flink_1.9.0_scala_2.11-py3.8.egg) (MD5: d04aa5d367bc653d5e872e1eba3494cd)
-3. Install using  ```easy_install [path]/pyalink-0.0.1-py3.*.egg```. have to be aware of is:
-    * If you have previously installed pyalink, use pip uninstall pyalink to uninstall the previous version before install command.
-    * If you have multiple versions of Python, you may need to use a specific version of easy_install, such as easy_install-3.7.
-    * If Anaconda is used, you may need to install the package in Anaconda prompt.
 
-Start using: 
+About package names and versions:
+  - PyAlink provides different Python packages for Flink versions that Alink supports: 
+  package `pyalink` always maintains Alink Python API against the latest Flink version, which is 1.10, 
+  while `pyalink-flink-***` support old-version Flink, which are `pyalink-flink-1.9` for now. 
+  - The version of python packages always follows Alink Java version, like `1.1.0`.
+  
+Installation steps:
+
+1. Make sure the version of python3 on your computer is 3.6 or 3.7.
+2. Make sure Java 8 is installed on your computer.
+3. Use pip to install:
+  `pip install pyalink` or `pip install pyalink-flink-1.9`.
+
+
+Potential issues:
+
+1. `pyalink` and/or `pyalink-flink-***` can not be installed at the same time. Multiple versions are not allowed.
+If `pyalink` or `pyalink-flink-***` was/were installed, please use `pip uninstall pyalink` or `pip uninstall pyalink-flink-***` to remove them.
+
+2. If `pip install` is slow of failed, refer to [this article](https://segmentfault.com/a/1190000006111096) to change the pip source, or use the following download links:
+   - Flink 1.10：[Link](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.1.2.post0/pyalink-1.1.2.post0-py3-none-any.whl) (MD5: 6bf3a50a4437116793149ead57d9793c)
+   - Flink 1.9: [Link](https://alink-release.oss-cn-beijing.aliyuncs.com/v1.1.2.post0/pyalink_flink_1.9-1.1.2.post0-py3-none-any.whl) (MD5: e6d2a0ba3549662d77b51a4a37483479)
+3. If multiple version of Python exist, you may need to use a special version of `pip`, like `pip3`;
+If Anaconda is used, the command should be run in Anaconda prompt. 
+
+### Start using: 
 -------
 We recommend using Jupyter Notebook to use PyAlink to provide a better experience.
 
@@ -59,16 +76,16 @@ JVM listening on ***
 Python listening on ***
 ```
 4. Start writing PyAlink code, for example:
-```
+```python
 source = CsvSourceBatchOp()\
     .setSchemaStr("sepal_length double, sepal_width double, petal_length double, petal_width double, category string")\
-    .setFilePath("http://alink-dataset.cn-hangzhou.oss.aliyun-inc.com/csv/iris.csv")
-res = source.select("sepal_length", "sepal_width")
+    .setFilePath("https://alink-release.oss-cn-beijing.aliyuncs.com/data-files/iris.csv")
+res = source.select(["sepal_length", "sepal_width"])
 df = res.collectToDataframe()
 print(df)
 ```
 
-Write code: 
+### Write code: 
 ------
 In PyAlink, the interface provided by the algorithm component is basically the same as the Java API, that is, an algorithm component is created through the default construction method, then the parameters are set through ```setXXX```, and other components are connected through ```link / linkTo / linkFrom```.
 
@@ -76,63 +93,99 @@ Here, Jupyter's auto-completion mechanism can be used to provide writing conveni
 
 For batch jobs, you can trigger execution through methods such as ```print / collectToDataframe / collectToDataframes``` of batch components or ```BatchOperator.execute ()```; for streaming jobs, start the job with ```StreamOperator.execute ()```.
 
-More usage: 
+### More usage: 
 ------
--  [Interchange between DataFrame and Operator](docs/pyalink/pyalink-dataframe.md)
-- [StreamOperator data preview](docs/pyalink/pyalink-stream-operator-preview.md)
-- [UDF usage](docs/pyalink/pyalink-udf.md)
+ - [PyAlink Tutorial](docs/pyalink/pyalink-overview.md)
+ - [Interchange between DataFrame and Operator](docs/pyalink/pyalink-dataframe.md)
+ - [StreamOperator data preview](docs/pyalink/pyalink-stream-operator-preview.md)
+ - [UDF/UDTF/SQL usage](docs/pyalink/pyalink-udf.md)
+ - [Use with PyFlink](docs/pyalink/pyalink-pyflink.md)
 
-Q&A: 
-----
-Q: Can I connect to a remote Flink cluster for computation?
+## Java API Manual
 
-A: You can connect to a Flink cluster that has been started through the command: ```useRemoteEnv(host, port, parallelism, flinkHome=None, localIp="localhost", shipAlinkAlgoJar=True, config=None)```.
+### KMeans Example
+```java
+String URL = "https://alink-release.oss-cn-beijing.aliyuncs.com/data-files/iris.csv";
+String SCHEMA_STR = "sepal_length double, sepal_width double, petal_length double, petal_width double, category string";
 
-- ```host``` and ```port```  represent the address of the cluster;
+BatchOperator data = new CsvSourceBatchOp()
+        .setFilePath(URL)
+        .setSchemaStr(SCHEMA_STR);
 
+VectorAssembler va = new VectorAssembler()
+        .setSelectedCols(new String[]{"sepal_length", "sepal_width", "petal_length", "petal_width"})
+        .setOutputCol("features");
 
-- ```parallelism```  indicates the degree of parallelism of executing the job;
-- ```flinkHome``` is the full path of flink. By default, the flink-1.9.0 path that comes with PyAlink is used.
-- ```localIp``` specifies the local IP address required to implement the print preview function of Flink ```DataStream```, which needs to be accessible by the Flink cluster. The default is ```localhost```.
-- ```shipAlinkAlgoJar``` Whether transmits the Alink algorithm package provided by PyAlink to the remote cluster. If the Alink algorithm package has been placed in the remote cluster, it can be set to False to reduce data transmission.
+KMeans kMeans = new KMeans().setVectorCol("features").setK(3)
+        .setPredictionCol("prediction_result")
+        .setPredictionDetailCol("prediction_detail")
+        .setReservedCols("category")
+        .setMaxIter(100);
 
------
+Pipeline pipeline = new Pipeline().add(va).add(kMeans);
+pipeline.fit(data).transform(data).print();
+```
 
-Q: How to stop long running Flink jobs?
+### With Flink-1.10
+```xml
+<dependency>
+    <groupId>com.alibaba.alink</groupId>
+    <artifactId>alink_core_flink-1.10_2.11</artifactId>
+    <version>1.1.2</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-streaming-scala_2.11</artifactId>
+    <version>1.10.0</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-table-planner_2.11</artifactId>
+    <version>1.10.0</version>
+</dependency>
+```
 
-A: When using the local execution environment, just use the Stop button provided by Notebook.
+### With Flink-1.9
 
-When using a remote cluster, you need to use the job stop function provided by the cluster.
-
----
-
-Q: Can I run it directly using Python scripts instead of Notebook?
-
-A: Yes. But you need to call resetEnv () at the end of the code, otherwise the script will not exit.
-
------
+```xml
+<dependency>
+    <groupId>com.alibaba.alink</groupId>
+    <artifactId>alink_core_flink-1.9_2.11</artifactId>
+    <version>1.1.2</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-streaming-scala_2.11</artifactId>
+    <version>1.9.0</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-table-planner_2.11</artifactId>
+    <version>1.9.0</version>
+</dependency>
+```
 
 
 Run Alink Algorithm with a Flink Cluster
 --------
 
 1. Prepare a Flink Cluster:
-```
-  wget https://archive.apache.org/dist/flink/flink-1.9.0/flink-1.9.0-bin-scala_2.11.tgz
-  tar -xf flink-1.9.0-bin-scala_2.11.tgz && cd flink-1.9.0
+```shell
+  wget https://archive.apache.org/dist/flink/flink-1.10.0/flink-1.10.0-bin-scala_2.11.tgz
+  tar -xf flink-1.10.0-bin-scala_2.11.tgz && cd flink-1.10.0
   ./bin/start-cluster.sh
 ```
 
 2. Build Alink jar from the source:
-```
+```shell
   git clone https://github.com/alibaba/Alink.git
   cd Alink && mvn -Dmaven.test.skip=true clean package shade:shade
 ```
 
 3. Run Java examples:
-```
-  ./bin/flink run -p 1 -c com.alibaba.alink.ALSExample [path_to_Alink]/examples/target/alink_examples-0.1-SNAPSHOT.jar
-  # ./bin/flink run -p 2 -c com.alibaba.alink.GBDTExample [path_to_Alink]/examples/target/alink_examples-0.1-SNAPSHOT.jar
-  # ./bin/flink run -p 2 -c com.alibaba.alink.KMeansExample [path_to_Alink]/examples/target/alink_examples-0.1-SNAPSHOT.jar
+```shell
+  ./bin/flink run -p 1 -c com.alibaba.alink.ALSExample [path_to_Alink]/examples/target/alink_examples-1.1-SNAPSHOT.jar
+  # ./bin/flink run -p 2 -c com.alibaba.alink.GBDTExample [path_to_Alink]/examples/target/alink_examples-1.1-SNAPSHOT.jar
+  # ./bin/flink run -p 2 -c com.alibaba.alink.KMeansExample [path_to_Alink]/examples/target/alink_examples-1.1-SNAPSHOT.jar
 ```
 

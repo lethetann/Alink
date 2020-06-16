@@ -11,7 +11,6 @@ import com.alibaba.alink.common.utils.TableUtil;
 import com.alibaba.alink.operator.batch.BatchOperator;
 import com.alibaba.alink.operator.common.linear.unarylossfunc.*;
 import com.alibaba.alink.operator.common.optim.Lbfgs;
-import com.alibaba.alink.operator.common.optim.OptimMethod;
 import com.alibaba.alink.operator.common.optim.OptimizerFactory;
 import com.alibaba.alink.operator.common.optim.Owlqn;
 import com.alibaba.alink.operator.common.optim.objfunc.OptimObjFunc;
@@ -258,7 +257,7 @@ public abstract class BaseLinearModelTrainBatchOp<T extends BaseLinearModelTrain
             .fromElements(getObjFunction(modelType, params));
 
         if (params.contains(LinearTrainParams.OPTIM_METHOD)) {
-            OptimMethod method = OptimMethod.valueOf(params.get(LinearTrainParams.OPTIM_METHOD).toUpperCase());
+            LinearTrainParams.OptimMethod method = params.get(LinearTrainParams.OPTIM_METHOD);
             return OptimizerFactory.create(objFunc, trainData, coefficientDim, params, method).optimize();
         } else if (params.get(HasL1.L_1) > 0) {
             return new Owlqn(objFunc, trainData, coefficientDim, params).optimize();
@@ -323,7 +322,7 @@ public abstract class BaseLinearModelTrainBatchOp<T extends BaseLinearModelTrain
             labelValues = MLEnvironmentFactory.get(in.getMLEnvironmentId())
                 .getExecutionEnvironment().fromElements(new Object());
         } else {
-            labelType = in.getColTypes()[TableUtil.findColIndex(in.getColNames(), labelName)];
+            labelType = in.getColTypes()[TableUtil.findColIndexWithAssertAndHint(in.getColNames(), labelName)];
             labelValues = in.select(new String[] {labelName}).distinct().getDataSet().map(
                 new MapFunction<Row, Object>() {
                     @Override
@@ -358,11 +357,11 @@ public abstract class BaseLinearModelTrainBatchOp<T extends BaseLinearModelTrain
             params.set(LinearTrainParams.FEATURE_COLS, featureColNames);
         }
         int[] featureIndices = null;
-        int labelIdx = TableUtil.findColIndex(dataSchema.getFieldNames(), labelName);
+        int labelIdx = TableUtil.findColIndexWithAssertAndHint(dataSchema.getFieldNames(), labelName);
         if (featureColNames != null) {
             featureIndices = new int[featureColNames.length];
             for (int i = 0; i < featureColNames.length; ++i) {
-                int idx = TableUtil.findColIndex(in.getColNames(), featureColNames[i]);
+                int idx = TableUtil.findColIndexWithAssertAndHint(in.getColNames(), featureColNames[i]);
                 featureIndices[i] = idx;
                 TypeInformation type = in.getSchema().getFieldTypes()[idx];
 
@@ -370,8 +369,8 @@ public abstract class BaseLinearModelTrainBatchOp<T extends BaseLinearModelTrain
                     "linear algorithm only support numerical data type. type is : " + type);
             }
         }
-        int weightIdx = weightColName != null ? TableUtil.findColIndex(in.getColNames(), weightColName) : -1;
-        int vecIdx = vectorColName != null ? TableUtil.findColIndex(in.getColNames(), vectorColName) : -1;
+        int weightIdx = weightColName != null ? TableUtil.findColIndexWithAssertAndHint(in.getColNames(), weightColName) : -1;
+        int vecIdx = vectorColName != null ? TableUtil.findColIndexWithAssertAndHint(in.getColNames(), vectorColName) : -1;
 
         return in.getDataSet().map(new Transform(isRegProc, weightIdx, vecIdx, featureIndices, labelIdx))
             .withBroadcastSet(labelValues, LABEL_VALUES);
@@ -388,7 +387,7 @@ public abstract class BaseLinearModelTrainBatchOp<T extends BaseLinearModelTrain
         if (featureColNames != null) {
             String[] featureColTypes = new String[featureColNames.length];
             for (int i = 0; i < featureColNames.length; ++i) {
-                int idx = TableUtil.findColIndex(in.getColNames(), featureColNames[i]);
+                int idx = TableUtil.findColIndexWithAssertAndHint(in.getColNames(), featureColNames[i]);
                 TypeInformation type = in.getSchema().getFieldTypes()[idx];
                 if (type.equals(Types.DOUBLE)) {
                     featureColTypes[i] = "double";

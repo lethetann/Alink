@@ -12,7 +12,6 @@ import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.ml.api.misc.param.Params;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
-import org.apache.flink.util.Preconditions;
 
 /**
  * Encode one column of strings to bigint type indices.
@@ -45,10 +44,7 @@ public final class StringIndexerTrainBatchOp
         BatchOperator<?> in = checkAndGetFirst(inputs);
 
         final String selectedCol = getSelectedCol();
-        final StringIndexerUtil.OrderType orderType = StringIndexerUtil.OrderType.valueOf(getStringOrderType().toUpperCase());
-        final int selectedColIdx = TableUtil.findColIndex(in.getColNames(), selectedCol);
-
-        Preconditions.checkArgument(selectedColIdx >= 0, "Can't find column " + selectedCol);
+        final int selectedColIdx = TableUtil.findColIndexWithAssertAndHint(in.getColNames(), selectedCol);
 
         DataSet<Row> inputRows = ((DataSet<Row>) in.getDataSet()).map(
             new MapFunction<Row, Row>() {
@@ -60,7 +56,7 @@ public final class StringIndexerTrainBatchOp
         );
 
         DataSet<Tuple3<Integer, String, Long>> indexedToken =
-            StringIndexerUtil.indexTokens(inputRows, orderType, 0L, true);
+            StringIndexerUtil.indexTokens(inputRows, getStringOrderType(), 0L, true);
 
         DataSet<Row> values = indexedToken
             .mapPartition(new RichMapPartitionFunction<Tuple3<Integer, String, Long>, Row>() {

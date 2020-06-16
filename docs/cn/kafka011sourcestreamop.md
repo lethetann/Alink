@@ -14,6 +14,7 @@
 | startupMode | "startupMode" | "startupMode", "EARLIEST","GROUP_OFFSETS","LATEST","TIMESTAMP" | String | ✓ |  |
 | topic | topic名称 | topic名称 | String |  | null |
 | topicPattern | "topic pattern" | "topic pattern" | String |  | null |
+| properties | 额外的kafka参数配置 | 额外的kafka参数配置，格式形如"prop1=val1,prop2=val2" | String |  |  |
 | startTime | 起始时间 | 起始时间。默认从当前时刻开始读。 | String |  | null |<!-- This is the end of auto-generated parameter info -->
 
 

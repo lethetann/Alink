@@ -1,57 +1,42 @@
 package com.alibaba.alink.params.feature;
 
-import com.alibaba.alink.params.shared.colname.HasOutputColsDefaultAsNull;
-import com.alibaba.alink.params.shared.colname.HasReservedCols;
+import org.apache.flink.calcite.shaded.com.google.common.primitives.Ints;
 import org.apache.flink.ml.api.misc.param.ParamInfo;
 import org.apache.flink.ml.api.misc.param.ParamInfoFactory;
+import org.apache.flink.util.Preconditions;
+
+import java.util.Arrays;
 
 /**
  * Params for bucketizer.
  */
 public interface BucketizerParams<T> extends
-	HasOutputColsDefaultAsNull<T>,
-	HasReservedCols<T> {
+	QuantileDiscretizerPredictParams<T>,
+	HasLeftOpen<T> {
 
-	ParamInfo <String> HANDLE_INVALID = ParamInfoFactory
-		.createParamInfo("handleInvalid", String.class)
-		.setDescription("parameter for how to handle invalid data (NULL values)")
-		.setHasDefaultValue("error")
+	ParamInfo <double[][]> CUTS_ARRAY = ParamInfoFactory
+		.createParamInfo("cutsArray", double[][].class)
+		.setDescription("Cut points array, each of them is used for the corresponding selected column.")
 		.build();
 
-	/**
-	 * parameter how to handle invalid data (NaN values). Options are 'skip' (filter out rows with
-	 * invalid data), 'error' (throw an error), or 'keep' (return relevant number of NaN in the output).
-	 */
-	default String getHandleInvalid() {return get(HANDLE_INVALID);}
-
-	default T setHandleInvalid(String value) {return set(HANDLE_INVALID, value);}
-
-	ParamInfo <String[]> SELECTED_COLS = ParamInfoFactory
-		.createParamInfo("selectedCols", String[].class)
-		.setDescription("Names of the columns used for processing")
-		.setAlias(new String[] {"selectedColNames"})
-		.build();
-
-	default String[] getSelectedCols() {
-		return get(SELECTED_COLS);
+	default double[][] getCutsArray() {
+		return get(CUTS_ARRAY);
 	}
 
-	default T setSelectedCols(String... value) {
-		return set(SELECTED_COLS, value);
+	default T setCutsArray(double[]... value) {
+		return set(CUTS_ARRAY, value);
 	}
 
-
-	ParamInfo <String[]> SPLITS_ARRAY = ParamInfoFactory
-		.createParamInfo("splitsArray", String[].class)
-		.setDescription("Split points array, each of them is used for the corresponding selected column.")
-		.build();
-
-	default String[] getSplitsArray() {
-		return get(SPLITS_ARRAY);
-	}
-
-	default T setSplitsArray(String... value) {
-		return set(SPLITS_ARRAY, value);
+	default T setCutsArray(double[] values, int[] cutsLength){
+		Preconditions.checkState(values.length == Arrays.stream(cutsLength).sum(), "Input format error!");
+		double[][] cutsArray = new double[cutsLength.length][];
+		int start = 0;
+		for(int i = 0; i < cutsLength.length; i++){
+			cutsArray[i] = new double[cutsLength[i]];
+			System.arraycopy(values, start, cutsArray[i], 0, cutsLength[i]);
+			start += cutsLength[i];
+		}
+		return set(CUTS_ARRAY, cutsArray);
 	}
 
 }

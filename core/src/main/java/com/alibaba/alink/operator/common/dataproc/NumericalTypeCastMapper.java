@@ -28,7 +28,7 @@ public class NumericalTypeCastMapper extends Mapper {
 	public NumericalTypeCastMapper(TableSchema dataSchema, Params params) {
 		super(dataSchema, params);
 		String[] inputColNames = this.params.get(NumericalTypeCastParams.SELECTED_COLS);
-		this.colIndices = TableUtil.findColIndices(dataSchema.getFieldNames(), inputColNames);
+		this.colIndices = TableUtil.findColIndicesWithAssertAndHint(dataSchema.getFieldNames(), inputColNames);
 		String[] outputColNames = params.get(NumericalTypeCastParams.OUTPUT_COLS);
 		if (outputColNames == null || outputColNames.length == 0) {
 			outputColNames = inputColNames;
@@ -40,7 +40,7 @@ public class NumericalTypeCastMapper extends Mapper {
 			reservedColNames = dataSchema.getFieldNames();
 		}
 
-		targetType = FlinkTypeConverter.getFlinkType(params.get(HasTargetType.TARGET_TYPE));
+		targetType = FlinkTypeConverter.getFlinkType(params.get(HasTargetType.TARGET_TYPE).toString());
 
 		this.outputColsHelper = new OutputColsHelper(dataSchema, outputColNames,
 			Arrays.stream(outputColNames).map(x -> targetType).toArray(TypeInformation[]::new), reservedColNames);

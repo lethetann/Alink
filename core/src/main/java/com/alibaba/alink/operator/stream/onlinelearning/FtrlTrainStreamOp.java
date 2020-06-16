@@ -49,7 +49,7 @@ import org.apache.flink.util.Collector;
 public final class FtrlTrainStreamOp extends StreamOperator<FtrlTrainStreamOp>
     implements FtrlTrainParams<FtrlTrainStreamOp> {
 
-    DataBridge dataBridge = null;
+    private DataBridge dataBridge = null;
 
     public FtrlTrainStreamOp(BatchOperator model) throws Exception {
         super(new Params());
@@ -90,15 +90,15 @@ public final class FtrlTrainStreamOp extends StreamOperator<FtrlTrainStreamOp>
         int vectorSize = getVectorSize();
         boolean hasInterceptItem = getWithIntercept();
         int vectorTrainIdx = getVectorCol() != null ?
-            TableUtil.findColIndex(inputs[0].getColNames(), getVectorCol()) : -1;
-        int labelIdx = TableUtil.findColIndex(inputs[0].getColNames(), getLabelCol());
+            TableUtil.findColIndexWithAssertAndHint(inputs[0].getColNames(), getVectorCol()) : -1;
+        int labelIdx = TableUtil.findColIndexWithAssertAndHint(inputs[0].getColNames(), getLabelCol());
         String[] featureCols = getFeatureCols();
         int[] featureIdx = null;
         int featureColLength = -1;
         if (vectorTrainIdx == -1) {
             featureIdx = new int[featureCols.length];
             for (int i = 0; i < featureCols.length; ++i) {
-                featureIdx[i] = TableUtil.findColIndex(inputs[0].getColNames(), featureCols[i]);
+                featureIdx[i] = TableUtil.findColIndexWithAssertAndHint(inputs[0].getColNames(), featureCols[i]);
             }
             featureColLength = featureCols.length;
         }
@@ -303,7 +303,7 @@ public final class FtrlTrainStreamOp extends StreamOperator<FtrlTrainStreamOp>
                 int rowSize = r.getArity();
                 Row row = new Row(rowSize + 2);
                 row.setField(0, iter);
-                row.setField(1, rows.size() + 0L);
+                row.setField(1, (long) rows.size());
 
                 for (int j = 0; j < rowSize; ++j) {
                     if (j == 2 && r.getField(j) != null) {
