@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.alibaba.alink</groupId>
+        <artifactId>alink_shaded</artifactId>
+        <version>0.2-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <flink.oss.fs.version>1.10.0</flink.oss.fs.version>
+    </properties>
+
+    <artifactId>shaded_flink_oss_fs_hadoop</artifactId>
+    <version>${flink.oss.fs.version}-0.2-SNAPSHOT</version>
+    <name>alink-shaded-flink-oss-fs-hadoop</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-oss-fs-hadoop</artifactId>
+            <version>${flink.oss.fs.version}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <relocations combine.self="override">
+                                <relocation>
+                                    <pattern>org.apache.flink.runtime.</pattern>
+                                    <shadedPattern>com.alibaba.alink.shaded.org.apache.flink.runtime.</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.gson.</pattern>
+                                    <shadedPattern>com.alibaba.alink.shaded.com.google.gson.</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

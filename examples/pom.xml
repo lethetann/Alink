@@ -5,7 +5,7 @@
     <parent>
         <artifactId>alink</artifactId>
         <groupId>com.alibaba.alink</groupId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,6 +18,12 @@
             <artifactId>alink_core_flink-${alink.flink.major.version}_${alink.scala.major.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!--
+        Note: Add scope as `provided` to exclude flink packages when running on cluster.
+              Ps: If we add `provided` as default, it will be crash when running on local.
+        -->
+
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java_${alink.scala.major.version}</artifactId>
@@ -43,6 +49,27 @@
             <artifactId>flink-table-planner_${alink.scala.major.version}</artifactId>
             <version>${flink.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-clients_${alink.scala.major.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+
+        <!-- oss file system dependency -->
+        <dependency>
+            <groupId>com.alibaba.alink</groupId>
+            <artifactId>shaded_flink_oss_fs_hadoop</artifactId>
+            <version>1.10.0-0.2</version>
+        </dependency>
+
+        <!-- hadoop file system dependency -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-shaded-hadoop-2</artifactId>
+            <version>2.8.3-9.0</version>
+        </dependency>
+
+        <!-- Add scope as `provided` ends here. -->
     </dependencies>
 
 </project>

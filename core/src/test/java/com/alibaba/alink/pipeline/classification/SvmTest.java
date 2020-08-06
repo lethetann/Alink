@@ -2,6 +2,7 @@ package com.alibaba.alink.pipeline.classification;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.alibaba.alink.common.MLEnvironmentFactory;
 import com.alibaba.alink.operator.AlgoOperator;
@@ -16,6 +17,9 @@ import org.apache.flink.types.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Test cases for svm pipeline.
+ */
 public class SvmTest {
 
 	AlgoOperator getData(boolean isBatch) {
@@ -51,16 +55,19 @@ public class SvmTest {
 		LinearSvm svm = new LinearSvm()
 			.setLabelCol(yVar)
 			.setFeatureCols(xVars)
+			.setOptimMethod("gd")
 			.setPredictionCol("svmpred");
 
 		LinearSvm vectorSvm = new LinearSvm()
 			.setLabelCol(yVar)
 			.setVectorCol(vectorName)
-			.setPredictionCol("vsvmpred");
+			.setPredictionCol("vsvmpred").enableLazyPrintModelInfo().enableLazyPrintTrainInfo();
 
 		LinearSvm sparseVectorSvm = new LinearSvm()
 			.setLabelCol(yVar)
 			.setVectorCol(svectorName)
+			.setOptimMethod("lbfgs")
+			.setMaxIter(10)
 			.setPredictionCol("svsvmpred")
 			.setPredictionDetailCol("detail");
 
@@ -73,16 +80,23 @@ public class SvmTest {
 		BatchOperator result = model.transform(trainData).select(
 			new String[] {"labels", "svmpred", "vsvmpred", "svsvmpred"});
 
-		List<Row> data = result.collect();
-
-		for (Row row : data) {
-			for (int i = 1; i < 3; ++i) {
-				Assert.assertEquals(row.getField(0), row.getField(i));
+		result.lazyCollect(new Consumer<List<Row>>() {
+			@Override
+			public void accept(List<Row> d) {
+				for (Row row : d) {
+					for (int i = 1; i < 3; ++i) {
+						Assert.assertEquals(row.getField(0), row.getField(i));
+					}
+				}
 			}
-		}
+		});
+
 		// below is stream test code.
 		model.transform((StreamOperator)getData(false)).select(
 			new String[] {"labels", "svmpred", "vsvmpred", "svsvmpred"}).print();
+
 		StreamOperator.execute();
+
+
 	}
 }

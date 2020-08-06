@@ -1,20 +1,29 @@
 package com.alibaba.alink.operator.batch.feature;
 
+import com.alibaba.alink.common.lazy.WithModelInfoBatchOp;
+import com.alibaba.alink.common.utils.DataSetConversionUtil;
 import com.alibaba.alink.common.utils.TableUtil;
 import com.alibaba.alink.operator.batch.BatchOperator;
 import com.alibaba.alink.operator.common.dataproc.StringIndexerUtil;
 import com.alibaba.alink.operator.common.feature.OneHotModelDataConverter;
+import com.alibaba.alink.operator.common.feature.OneHotModelInfo;
+import com.alibaba.alink.operator.common.feature.OneHotModelInfoBatchOp;
 import com.alibaba.alink.operator.common.io.types.FlinkTypeConverter;
 import com.alibaba.alink.params.dataproc.HasSelectedColTypes;
 import com.alibaba.alink.params.feature.HasEnableElse;
 import com.alibaba.alink.params.feature.OneHotTrainParams;
 import com.alibaba.alink.params.shared.colname.HasSelectedCols;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapPartitionFunction;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.DataSet;
+import org.apache.flink.api.java.aggregation.Aggregations;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.ml.api.misc.param.Params;
+import org.apache.flink.table.api.Table;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 
@@ -25,7 +34,8 @@ import java.util.Arrays;
  * one hot, and then it can transform data to binary format using this model.
  */
 public final class OneHotTrainBatchOp extends BatchOperator<OneHotTrainBatchOp>
-	implements OneHotTrainParams<OneHotTrainBatchOp> {
+	implements OneHotTrainParams<OneHotTrainBatchOp>,
+	WithModelInfoBatchOp<OneHotModelInfo, OneHotTrainBatchOp, OneHotModelInfoBatchOp> {
 
 	/**
 	 * null constructor.
@@ -67,6 +77,7 @@ public final class OneHotTrainBatchOp extends BatchOperator<OneHotTrainBatchOp>
 		DataSet<Row> inputRows = in.select(selectedColNames).getDataSet();
 		DataSet<Tuple3<Integer, String, Long>> countTokens = StringIndexerUtil.countTokens(inputRows, true)
 			.filter(new FilterFunction<Tuple3<Integer, String, Long>>() {
+
 				@Override
 				public boolean filter(Tuple3<Integer, String, Long> value) {
 					return value.f2 >= thresholdArray[value.f0];
@@ -79,6 +90,7 @@ public final class OneHotTrainBatchOp extends BatchOperator<OneHotTrainBatchOp>
 
 		DataSet<Row> values = indexedToken
 			.mapPartition(new RichMapPartitionFunction<Tuple3<Integer, String, Long>, Row>() {
+
 				@Override
 				public void mapPartition(Iterable<Tuple3<Integer, String, Long>> values, Collector<Row> out)
 					throws Exception {
@@ -93,8 +105,26 @@ public final class OneHotTrainBatchOp extends BatchOperator<OneHotTrainBatchOp>
 			})
 			.name("build_model");
 
+		DataSet<Row> distinctNumber = indexedToken
+			.groupBy(0)
+			.aggregate(Aggregations.MAX, 2)
+			.map(new MapFunction<Tuple3<Integer, String, Long>, Row>() {
+
+				@Override
+				public Row map(Tuple3<Integer, String, Long> value) throws Exception {
+					return Row.of(selectedColNames[value.f0], value.f2 + 1);
+				}
+			});
+
 		this.setOutput(values, new OneHotModelDataConverter().getModelSchema());
+		this.setSideOutputTables(new Table[]{DataSetConversionUtil.toTable(getMLEnvironmentId(), distinctNumber,
+			new String[]{"selectedCol", "distinctTokenNumber"}, new TypeInformation[]{Types.STRING, Types.LONG})});
 		return this;
+	}
+
+	@Override
+	public OneHotModelInfoBatchOp getModelInfoBatchOp(){
+		return new OneHotModelInfoBatchOp().linkFrom(this);
 	}
 
 	/**

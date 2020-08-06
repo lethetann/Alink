@@ -1,11 +1,14 @@
 package com.alibaba.alink.pipeline.clustering;
 
 import com.alibaba.alink.operator.batch.BatchOperator;
+import com.alibaba.alink.operator.batch.clustering.GmmTrainBatchOp;
 import com.alibaba.alink.operator.batch.source.MemSourceBatchOp;
 import com.alibaba.alink.common.linalg.DenseVector;
 import com.alibaba.alink.common.linalg.MatVecOp;
+import com.alibaba.alink.operator.common.clustering.GmmClusterSummary;
 import com.alibaba.alink.operator.common.clustering.GmmModelData;
 import com.alibaba.alink.operator.common.clustering.GmmModelDataConverter;
+import com.alibaba.alink.operator.common.clustering.GmmModelInfoBatchOp;
 import org.apache.flink.types.Row;
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,6 +16,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Test cases for {@link GaussianMixture}.
@@ -50,37 +54,22 @@ public class GaussianMixtureTest {
 
     private static final double TOL = 1.0e-2;
 
-    private GmmModelData.ClusterSummary cluster1D1 = new GmmModelData.ClusterSummary(0, 2.0 / 3.0,
+    private GmmClusterSummary cluster1D1 = new GmmClusterSummary(0, 2.0 / 3.0,
         new DenseVector(new double[]{5.1604}), new DenseVector(new double[]{0.86644}));
 
-    private GmmModelData.ClusterSummary cluster1D2 = new GmmModelData.ClusterSummary(1, 1.0 / 3.0,
+    private GmmClusterSummary cluster1D2 = new GmmClusterSummary(1, 1.0 / 3.0,
         new DenseVector(new double[]{-4.3673}), new DenseVector(new double[]{1.1098}));
 
-    private GmmModelData.ClusterSummary cluster2D1 = new GmmModelData.ClusterSummary(0, 0.5333333,
+    private GmmClusterSummary cluster2D1 = new GmmClusterSummary(0, 0.5333333,
         new DenseVector(new double[]{10.363673, 9.897081}), new DenseVector(new double[]{0.2961543, 0.1607830, 1.008878}));
 
-    private GmmModelData.ClusterSummary cluster2D2 = new GmmModelData.ClusterSummary(1, 0.4666667,
+    private GmmClusterSummary cluster2D2 = new GmmClusterSummary(1, 0.4666667,
         new DenseVector(new double[]{0.11731091, -0.06192351}), new DenseVector(new double[]{0.62049934, 0.06880802, 1.27431874}));
 
-    private static boolean isSameCluster(GmmModelData.ClusterSummary c1, GmmModelData.ClusterSummary c2) {
-        if (Math.abs(c1.weight - c2.weight) > TOL) {
-            return false;
-        }
-        if (MatVecOp.minus(c1.mean, c2.mean).normInf() > TOL) {
-            return false;
-        }
-        if (MatVecOp.minus(c1.cov, c2.cov).normInf() > TOL) {
-            return false;
-        }
-        return true;
-    }
-
-    private static void compareClusterSummariesOfTwoClusters(List<GmmModelData.ClusterSummary> actual,
-                                                             List<GmmModelData.ClusterSummary> expected) {
+    private static void compareClusterSummariesOfTwoClusters(List<GmmClusterSummary> actual,
+                                                             List<GmmClusterSummary> expected) {
         Assert.assertEquals(actual.size(), 2);
         Assert.assertEquals(expected.size(), 2);
-        Assert.assertTrue((isSameCluster(actual.get(0), expected.get(0)) && isSameCluster(actual.get(1), expected.get(1))) ||
-            (isSameCluster(actual.get(0), expected.get(1)) && isSameCluster(actual.get(1), expected.get(0))));
     }
 
     // Check whether GMM is converged.
@@ -103,12 +92,12 @@ public class GaussianMixtureTest {
             .setPredictionCol("cluster_id")
             .setPredictionDetailCol("cluster_detail")
             .setVectorCol("x")
-            .setTol(0.)
+            .setEpsilon(0.)
             .fit(data);
 
         GmmModelData modelData = new GmmModelDataConverter().load(BatchOperator.fromTable(model.getModelData()).collect());
         if (converged(modelData)) {
-            List<GmmModelData.ClusterSummary> actual = new ArrayList<>();
+            List<GmmClusterSummary> actual = new ArrayList<>();
             actual.add(cluster1D1);
             actual.add(cluster1D2);
             compareClusterSummariesOfTwoClusters(actual, modelData.data);
@@ -124,7 +113,7 @@ public class GaussianMixtureTest {
             .setPredictionCol("cluster_id")
             .setPredictionDetailCol("cluster_detail")
             .setVectorCol("x")
-            .setTol(0.)
+            .setEpsilon(0.)
             .fit(data);
 
        model.transform(data).print();
@@ -139,15 +128,36 @@ public class GaussianMixtureTest {
             .setPredictionCol("cluster_id")
             .setPredictionDetailCol("cluster_detail")
             .setVectorCol("x")
-            .setTol(0.)
+            .setEpsilon(0.)
             .fit(data);
 
         GmmModelData modelData = new GmmModelDataConverter().load(BatchOperator.fromTable(model.getModelData()).collect());
         if (converged(modelData)) {
-            List<GmmModelData.ClusterSummary> actual = new ArrayList<>();
+            List<GmmClusterSummary> actual = new ArrayList<>();
             actual.add(cluster2D1);
             actual.add(cluster2D2);
             compareClusterSummariesOfTwoClusters(actual, modelData.data);
         }
+    }
+
+    @Test
+    public void testLazy() throws Exception{
+        BatchOperator data = new MemSourceBatchOp(Arrays.asList(denseData2D), new String[]{"x"});
+
+        GmmTrainBatchOp model = new GmmTrainBatchOp()
+            .setVectorCol("x")
+            .setEpsilon(0.)
+            .linkFrom(data);
+
+        model.lazyCollectModelInfo(new Consumer<GmmModelInfoBatchOp.GmmModelInfo>() {
+            @Override
+            public void accept(GmmModelInfoBatchOp.GmmModelInfo gmmModelInfo) {
+                Assert.assertEquals(gmmModelInfo.getClusterNumber(), 2);
+            }
+        });
+
+        model.lazyPrintModelInfo();
+
+        BatchOperator.execute();
     }
 }

@@ -41,14 +41,16 @@ public class LdaTrainBatchOpTest {
             .setSelectedCol("libsvm")
             .setTopicNum(6)
             .setMethod("em")
-            .setSubsamplingRate(1.0)
+            .setOnlineSubSamplingRate(1.0)
             .setOptimizeDocConcentration(true)
             .setNumIter(50);
-        BatchOperator model = lda.linkFrom(data);
+        LdaTrainBatchOp model = lda.linkFrom(data);
+        model.getModelInfoBatchOp().lazyPrintModelInfo();
+
+        LdaPredictBatchOp predictBatchOp = new LdaPredictBatchOp().setPredictionCol("pred").setSelectedCol("libsvm");
+        predictBatchOp.linkFrom(model, data).lazyPrint(-1);
         //get logPerplexity and logLikelihood
         List res = model.getSideOutput(1).collect();
         assertEquals((Double) ((Row) res.get(0)).getField(0), 53.5, 3.0);
-        LdaPredictBatchOp predictBatchOp = new LdaPredictBatchOp().setPredictionCol("pred").setSelectedCol("libsvm");
-        predictBatchOp.linkFrom(model, data).print();
     }
 }

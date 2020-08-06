@@ -1,5 +1,6 @@
 package com.alibaba.alink.common;
 
+import com.alibaba.alink.common.lazy.LazyObjectsManager;
 import com.alibaba.alink.common.utils.DataSetConversionUtil;
 import com.alibaba.alink.common.utils.DataStreamConversionUtil;
 import com.alibaba.alink.operator.batch.BatchOperator;
@@ -13,9 +14,10 @@ import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.java.BatchTableEnvironment;
-import org.apache.flink.table.api.java.StreamTableEnvironment;
+import org.apache.flink.table.api.bridge.java.BatchTableEnvironment;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.Arrays;
@@ -39,6 +41,8 @@ public class MLEnvironment {
     private StreamExecutionEnvironment streamEnv;
     private BatchTableEnvironment batchTableEnv;
     private StreamTableEnvironment streamTableEnv;
+
+    final LazyObjectsManager lazyObjectsManager = new LazyObjectsManager();
 
     /**
      * Construct with null that the class can load the environment in the `get` method.
@@ -143,7 +147,13 @@ public class MLEnvironment {
      */
     public StreamExecutionEnvironment getStreamExecutionEnvironment() {
         if (null == streamEnv) {
-            streamEnv = StreamExecutionEnvironment.getExecutionEnvironment();
+            Configuration conf = new Configuration();
+            conf.setString(
+                "classloader.parent-first-patterns.additional",
+                "org.apache.flink.statefun;org.apache.kafka;com.google.protobuf"
+            );
+            streamEnv = StreamExecutionEnvironment.createLocalEnvironment(2, conf);
+//            streamEnv = StreamExecutionEnvironment.getExecutionEnvironment();
         }
         return streamEnv;
     }
@@ -171,7 +181,14 @@ public class MLEnvironment {
      */
     public StreamTableEnvironment getStreamTableEnvironment() {
         if (null == streamTableEnv) {
-            streamTableEnv = StreamTableEnvironment.create(getStreamExecutionEnvironment());
+            streamTableEnv = StreamTableEnvironment
+                .create(
+                    getStreamExecutionEnvironment(),
+                    EnvironmentSettings
+                        .newInstance()
+                        .useOldPlanner()
+                        .build()
+                );
         }
         return streamTableEnv;
     }
@@ -277,5 +294,8 @@ public class MLEnvironment {
         DataStream<Row> dataSet = getStreamExecutionEnvironment().fromCollection(rows);
         return DataStreamConversionUtil.toTable(this, dataSet, colNames, types);
     }
-}
 
+    public LazyObjectsManager getLazyObjectsManager() {
+        return lazyObjectsManager;
+    }
+}

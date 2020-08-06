@@ -41,6 +41,10 @@ public class PipelineModel extends ModelBase<PipelineModel> implements LocalPred
         }
     }
 
+    public TransformerBase[] getTransformers() {
+        return transformers;
+    }
+
     private static void flattenTransformers(TransformerBase[] transformers, List<TransformerBase> flattened) {
         for (TransformerBase transformer : transformers) {
             if (transformer instanceof PipelineModel) {
@@ -56,7 +60,7 @@ public class PipelineModel extends ModelBase<PipelineModel> implements LocalPred
         for (TransformerBase transformer : this.transformers) {
             input = transformer.transform(input);
         }
-        return input;
+        return postProcessTransformResult(input);
     }
 
     @Override

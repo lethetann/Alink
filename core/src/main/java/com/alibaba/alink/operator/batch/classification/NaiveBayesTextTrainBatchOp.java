@@ -2,6 +2,7 @@ package com.alibaba.alink.operator.batch.classification;
 
 import java.util.ArrayList;
 
+import com.alibaba.alink.common.lazy.WithModelInfoBatchOp;
 import com.alibaba.alink.common.linalg.DenseMatrix;
 import com.alibaba.alink.common.linalg.DenseVector;
 import com.alibaba.alink.common.linalg.SparseVector;
@@ -31,13 +32,17 @@ import org.apache.flink.util.Collector;
 /**
  * Text Naive Bayes Classifier.
  *
- * We support the multinomial Naive Bayes and multinomial Naive Bayes model, a probabilistic learning method.
- * Here, feature values of train table must be nonnegative.
+ * We support the multinomial Naive Bayes and bernoulli Naive Bayes model, a probabilistic learning method.
+ * Here, the input data must be vector and the values must be nonnegative.
+ *
+ * Details info of the algorithm:
+ * https://nlp.stanford.edu/IR-book/html/htmledition/naive-bayes-text-classification-1.html
+ *
  */
-
-public final class NaiveBayesTextTrainBatchOp
-		extends BatchOperator<NaiveBayesTextTrainBatchOp>
-		implements NaiveBayesTextTrainParams<NaiveBayesTextTrainBatchOp> {
+public class NaiveBayesTextTrainBatchOp
+	extends BatchOperator<NaiveBayesTextTrainBatchOp>
+	implements NaiveBayesTextTrainParams<NaiveBayesTextTrainBatchOp>,
+	WithModelInfoBatchOp<NaiveBayesTextModelInfo, NaiveBayesTextTrainBatchOp, NaiveBayesTextModelInfoBatchOp> {
 
 	/**
 	 * Constructor.
@@ -91,17 +96,24 @@ public final class NaiveBayesTextTrainBatchOp
 		DataSet <Tuple3 <Object, Double, Vector>> trainData = data
 				.mapPartition(new Transform());
 
-		DataSet <Row> probs = trainData
-				.groupBy(new SelectLabel())
-				.reduceGroup(new ReduceItem())
-				.withBroadcastSet(vectorSize, "vectorSize")
-				.mapPartition(new GenerateModel(smoothing, modelType, vectorColName, labelType))
-				.withBroadcastSet(vectorSize, "vectorSize")
-				.setParallelism(1);
+		DataSet<Tuple3 <Object, Double, Vector>> labelFeatureInfo = trainData
+			.groupBy(new SelectLabel())
+			.reduceGroup(new ReduceItem())
+			.withBroadcastSet(vectorSize, "vectorSize");
+
+		DataSet <Row> probs = labelFeatureInfo
+			.mapPartition(new GenerateModel(smoothing, modelType, vectorColName, labelType))
+			.withBroadcastSet(vectorSize, "vectorSize")
+			.setParallelism(1);
 
 		//save the model matrix.
 		this.setOutput(probs, new NaiveBayesTextModelDataConverter(labelType).getModelSchema());
 		return this;
+	}
+
+	@Override
+	public NaiveBayesTextModelInfoBatchOp getModelInfoBatchOp() {
+		return new NaiveBayesTextModelInfoBatchOp(getParams()).linkFrom(this);
 	}
 
 	/**
@@ -127,11 +139,11 @@ public final class NaiveBayesTextTrainBatchOp
 		public void mapPartition(Iterable <Tuple3 <Object, Double, Vector>> values, Collector <Row> collector)
 				throws Exception {
 			double numDocs = 0.0;
-			ArrayList <Tuple3 <Object, Double, Vector>> modelArray = new ArrayList <>();
+			ArrayList <Tuple3 <Object, Double, DenseVector>> modelArray = new ArrayList <>();
 
-			for (Tuple3 <Object, Double, Vector> tup : values) {
-				numDocs += tup.f1;
-				modelArray.add(tup);
+			for (Tuple3 <Object, Double, Vector> tuple3 : values) {
+				numDocs += tuple3.f1;
+				modelArray.add(Tuple3.of(tuple3.f0, tuple3.f1, (DenseVector) tuple3.f2));
 			}
 			int numLabels = modelArray.size();
 			double piLog = Math.log(numDocs + numLabels * this.smoothing);
@@ -140,7 +152,7 @@ public final class NaiveBayesTextTrainBatchOp
 			double[] piArray = new double[numLabels];
 			Object[] labels = new Object[numLabels];
 			for (int i = 0; i < numLabels; ++i) {
-				DenseVector feature = (DenseVector) modelArray.get(i).f2;
+				DenseVector feature = modelArray.get(i).f2;
 				double numTerm = 0.0;
 				for (int j = 0; j < feature.size(); ++j) {
 					numTerm += feature.get(j);
@@ -174,6 +186,8 @@ public final class NaiveBayesTextTrainBatchOp
 			trainResultData.theta = theta;
 			trainResultData.vectorColName = vectorColName;
 			trainResultData.modelType = modelType;
+			trainResultData.modelArray = modelArray;
+			trainResultData.vectorSize = modelArray.get(0).f2.size();
 
 			new NaiveBayesTextModelDataConverter(labelType).save(trainResultData, collector);
 		}
